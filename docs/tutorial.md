@@ -3144,19 +3144,54 @@ boundary conditions however, the function behavior is significantly warped at
 the boundary if $f$ does not have zero normal gradient at the boundary.
 
 In [^stein_2018] it is suggested to use the Biharmonic energy with natural
-Hessian boundary conditions instead, which corresponds to the Hessian energy
-with the matrix `QH = H'*(M2\H)`, where `H` is a finite element Hessian and
-`M2` is a stacked mass matrix. The matrices `H` and `QH` are implemented in
-libigl as `igl::hessian` and `igl::hessian_energy` respectively. An example
-of how to use the function is given in [Example 712]({{ repo_url }}/tutorial/712_DataSmoothing/main.cpp).
+Hessian boundary conditions instead, which corresponds to the _planar_ Hessian energy
+with the matrix `QH = H'*(M2\H)`, where `H` is a finite element planar Hessian and
+`M2` is a stacked mass matrix.
+This approach can be naively extended to curved surfaces as well, but does not
+account for curvature there.
+The matrices `H` and `QH` are implemented in
+libigl as `igl::hessian` and `igl::hessian_energy` respectively.
+
+In [^stein_2020a], the concept of a Hessian energy is extended to _curved_
+surfaces, which entails the addition of a curvature correction term, as well
+as a bespoke discretization for curved surfaces.
+This curved Hessian energy solves the biharmonic equation correctly on curved
+surfaces (whereas the planar Hessian energy only does so on planar surfaces),
+and accounts for surface curvature (unlike the planar Hessian energy).
+The curved Hessian energy is implemented in libigl as
+`igl::curved_hessian_energy`.
+
+An example of how to use the functions `igl::hessian_energy` and
+`igl::curved_hessian_energy` is given in
+[Example 712]({{ repo_url }}/tutorial/712_DataSmoothing/main.cpp).
 
 In the following image the differences between the Laplacian energy with
-zero Neumann boundary conditions and the Hessian energy can be clearly seen:
+zero Neumann boundary conditions and the Hessian energies can be clearly seen:
 whereas the zero Neumann boundary condition in the third image bias the isolines
-of the function to be perpendicular to the boundary, the Hessian energy gives
+of the function to be perpendicular to the boundary, the Hessian energies give
 an unbiased result.
+The planar Hessian energy result looks a touch unnatural, because it does
+not account for the curvature of the surface, but both Hessian energies do a
+good job for dense noise.
 
-![([Example 712]({{ repo_url }}/tutorial/712_DataSmoothing/main.cpp)) From left to right: a function on the beetle mesh, the function with added noise, the result of smoothing with the Laplacian energy and zero Neumann boundary conditions, and the result of smoothing with the Hessian energy.](images/712_beetles.jpg)
+![([Example 712]({{ repo_url }}/tutorial/712_DataSmoothing/main.cpp)) On the top row,
+from left to right: a function the beetle mesh, and the same function with added noise.
+On the bottom row, from left to right: the result of smoothing with the Laplacian energy
+and zero Neumann boundary conditions, the result of smoothing with the planar Hessian energy,
+and the result of smoothing with the curved Hessian energy.](images/712_beetlenoise.jpg)
+
+The following image shows a step function being smoothed.
+Here the differences between the planar Hessian energy and the curved Hessian energy
+become obvious: since the planar Hessian energy does not account for the curvature of
+surfaces, the spacing between the isolines is distorted at different parts of the
+surface that have different curvature.
+The curved Hessian energy maintains more consistent isoline spacing.
+
+![([Example 712]({{ repo_url }}/tutorial/712_DataSmoothing/main.cpp)) From left
+to right: a step function, the result of smoothing the step function with the
+Laplacian energy and zero Neumann boundary conditions, the result of smoothing with
+the planar Hessian energy, and the result of smoothing with the curved Hessian
+energy.](images/712_beetlestep.jpg)
 
 ### Shapeup Projections
 
@@ -3401,6 +3436,72 @@ igl::fast_winding_number(P,N,A,O_PI,O_CH,O_CM,O_R,O_EC,Q,2,W);
 ```
 
 
+### Iterative Closest Point
+
+!!! todo
+    _Entry Missing_
+
+
+### Exploded View
+
+!!! todo
+    _Entry Missing_
+
+
+### Vector Field Smoothing
+
+A noisy vector field can be smoothed by solving the following partial differential
+equation featuring the Bochner vector Laplacian $\Delta_b$:
+
+$\frac{\partial}{\partial t}\mathbf{u} = \lambda \Delta_b \mathbf{u}$
+
+With a discrete vector Dirichlet energy matrix `L` and a discrete vector mass
+matrix `M`, the implicit Euler formulation of the partial differential equation
+can be written as the repeated application of
+
+```(M + lambda*L) * u1 = M * u0
+```
+
+In [Example 720]({{ repo_url }}/tutorial/720_VectorFieldSmoothing/main.cpp) the
+vector Crouzeix-Raviart discretization of [^stein_2020b] is used to compute
+the discrete vector Dirichlet energy matrix (`igl::cr_vector_laplacian`) and the
+discrete vector Mass matrix (`igl::cr_vector_mass`), and above equation is solved
+to smooth a noisy vector field.
+
+![([Example 720]({{ repo_url }}/tutorial/720_VectorFieldSmoothing/main.cpp)) From
+left to right: a smooth vector field, the same vector field with added noise, and
+the noisy vector field denoised by repeated application of the vector Dirichlet
+energy.](images/720_smoothing.jpg)
+
+
+### Implicit Function Meshing
+
+The vector heat method of [^sharp_2019] can be used to efficiently parallel
+transport a vector to any point on the surface
+using the scalar Laplacian $\Delta$ Bochner vector Laplacian $\Delta_b$.
+The algorithm is as follows:
+
+*Input:* A vector field $X$ supported on a subset $\Omega \subseteq M$ of the
+domain $M$, and a timestep $t$.
+
+*Output:* A vector field $\bar{X}$ on all of $M$.
+
+1. Integrate the vector heat flow $\frac{\partial}{\partial t}Y_t = \Delta_b Y_t$, with $Y_0 = X$.
+2. Integrate the scalar heat flow $\frac{\partial}{\partial t}u_t = \Delta u_t$, with $u_0 = |X|$.
+3. Integrate the scalar heat flow $\frac{\partial}{\partial t}\phi_t = \Delta \phi_t$, with $\phi_0 = \operatorname{indicator}_{\Omega} $.
+4. Evaluate the vector field $\bar{X}_t = u_t Y_t / \phi_t |Y_t|$
+
+
+In [Example 721]({{ repo_url }}/tutorial/721_VectorParallelTransport/main.cpp) the
+vector Crouzeix-Raviart discretization of [^stein_2020b] together with scalar
+Crouzeix-Raviart finite elements are used to discretize
+the vector heat method.
+
+![([Example 721]({{ repo_url }}/tutorial/721_VectorParallelTransport/main.cpp)) The
+red vector (on the chest of the figure) is parallel transported to any point on
+the surface using the vector heat method.](images/721_paralleltransport.jpg)
+
+
 ## Outlook For Continuing Development
 
 Libigl is in active development, and we plan to focus on the following features
@@ -3499,3 +3600,7 @@ repository](https://github.com/libigl/libigl).
 [^jiang_2017]: Zhongshi Jiang, Scott Schaefer, Daniele Panozzo. [SCAF: Simplicial Complex Augmentation Framework for Bijective Maps](https://doi.org/10.1145/3130800.3130895), 2017
 [^barill_2018]: Gavin Barill, Neil G. Dickson, Ryan Schmidt, David I.W. Levin, Alec Jacobson. [Fast Winding Numbers for Soups and Clouds](http://www.dgp.toronto.edu/projects/fast-winding-numbers/), 2018.
 [^stein_2018]: Oded Stein, Eitan Grinspun, Max Wardetzky, Alec Jacobson. [Natural Boundary Conditions for Smoothing in Geometry Processing](http://www.cs.columbia.edu/cg/hessians/), 2018.
+[^stein_2020a]: Oded Stein, Alec Jacobson, Max Wardetzky, Eitan Grinspun. [A Smoothness Energy without Boundary Distortion for Curved Surfaces](http://www.cs.columbia.edu/cg/curved-hessian/), 2020.
+[^stein_2020b]: Oded Stein, Max Wardetzky, Alec Jacobson, Eitan Grinspun. [A Simple Discretization of the Vector Dirichlet Energy](http://www.cs.columbia.edu/cg/a-simple-discretization/), 2020.
+[^sharp_2019]: Nicholas Sharp, Yousuf Soliman, Keenan Crane. [The Vector Heat Method](https://www.cs.cmu.edu/~kmcrane/Projects/VectorHeatMethod/index.html), 2019.
+
