@@ -9,7 +9,8 @@
 
       Version | Short description
       --------|----------------------------------------------------------------------
-      dev     | New python bindings, fast winding number for soups, ICP algorithm
+      master  | DDM skinning, Bézier, PLY reader, 3D text rendering, matcap
+      2.2.0   | New python bindings, fast winding number for soups, ICP algorithm
       2.1.0   | Various improvements and bug fixes, updated dependencies
       2.0.0   | Lighter, simpler CMake build, rewritten history
       1.3.3   | Switched the build system from submodules to CMake external projects
@@ -52,15 +53,27 @@
 ## Upcoming version (`master` branch)
 
 #### New Features
+- Direct Delta Mush skinning (#1541)
+- New exploded view tutorial (#1510)
+- Bézier curve evaluation (`igl::bezier`) and fitting (`igl::fit_cubic_bezier`) (#1476)
 - Replace .ply reader/writer with tinyply library (#1422)
+- `igl::copyleft::cgal::wire_mesh` now support per-edge thickness. Adds `igl::copyleft::cgal::coplanar` test (#1488)
+- New generic function for connected components (`igl::connected_components`) (#1487)
+- Viewer: matcap support (#1482)
+- Viewer: option for double-sided lighting (#1480)
+- Viewer: new 3D text rendering feature, supporting proper label depth (#1549)
 
 #### Build System
+- Update ImGui to 1.76 (#1545)
 
 #### Misc
 - Fix align_camera_center in Viewer::init() for multiple cores (#1349)
 - Add floating point exceptions in unit tests (#1001)
 - Extended serialization functionality to Eigen::Array (#1113)
-- Various bugfixes, compile fixes, template fixes (#1400, #1361, #1402, #1430, #1438, #1471, #1441, #1475, #1335)
+- SCAF: Expose linear system to be solved by user code (#1553)
+- Fix issue with `igl::heat_geodesic` (#1497)
+- Refactored `igl::is_edge_manifold` (#1509)
+- Various bugfixes, compile fixes, template fixes (#1335, #1361, #1400, #1402, #1430, #1438, #1441, #1471, #1475, #1484, #1494, #1495, #1497, #1525, #1538, #1544, #1546, #1581, #1582)
 
 ## Version 2.2.0 Changes
 
