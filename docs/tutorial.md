@@ -3530,13 +3530,13 @@ can be written as the repeated application of
 ```(M + lambda*L) * u1 = M * u0
 ```
 
-In [Example 720]({{ repo_url }}/tutorial/721_VectorFieldSmoothing/main.cpp) the
+In [Example 721]({{ repo_url }}/tutorial/721_VectorFieldSmoothing/main.cpp) the
 vector Crouzeix-Raviart discretization of [^stein_2020b] is used to compute
 the discrete vector Dirichlet energy matrix (`igl::cr_vector_laplacian`) and the
 discrete vector Mass matrix (`igl::cr_vector_mass`), and above equation is solved
 to smooth a noisy vector field.
 
-![([Example 720]({{ repo_url }}/tutorial/721_VectorFieldSmoothing/main.cpp)) From
+![([Example 721]({{ repo_url }}/tutorial/721_VectorFieldSmoothing/main.cpp)) From
 left to right: a smooth vector field, the same vector field with added noise, and
 the noisy vector field denoised by repeated application of the vector Dirichlet
 energy.](images/721_smoothing.jpg)
@@ -3560,12 +3560,12 @@ domain $M$, and a timestep $t$.
 4. Evaluate the vector field $\bar{X}_t = u_t Y_t / \phi_t |Y_t|$
 
 
-In [Example 721]({{ repo_url }}/tutorial/722_VectorParallelTransport/main.cpp) the
+In [Example 722]({{ repo_url }}/tutorial/722_VectorParallelTransport/main.cpp) the
 vector Crouzeix-Raviart discretization of [^stein_2020b] together with scalar
 Crouzeix-Raviart finite elements are used to discretize
 the vector heat method.
 
-![([Example 721]({{ repo_url }}/tutorial/722_VectorParallelTransport/main.cpp)) The
+![([Example 722]({{ repo_url }}/tutorial/722_VectorParallelTransport/main.cpp)) The
 red vector (on the chest of the figure) is parallel transported to any point on
 the surface using the vector heat method.](images/722_paralleltransport.jpg)
 
